@@ -1,0 +1,12 @@
+{
+  "name": "superlu",
+  "type": "module",
+  "version": "2.0.0",
+  "description": "WASM wrapper of SUPERLU",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
