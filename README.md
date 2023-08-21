@@ -27,6 +27,18 @@ const main = async () => {
   console.log("SLU", SLU)
 
   const slu = SLU.fromMatrix(A)
+
+  /** set system matrix from CCS(compressed colummnh strage) format
+    const colIndex = [0, 1, 4, 1, 2, 4, 0, 2, 0, 3, 3, 4]
+    const nnz = 12
+    const rowPtr = [0, 3, 6, 8, 10, 12]
+    const rows = 5
+    const val = [19, 12, 12, 21, 12, 12, 21, 16, 21, 5, 21, 18]
+
+    const amg = AMG.fromCCS(rows,rows,nnz,val,colIndex,rowPtr)
+   */
+
+
   console.log("slu", slu)
   console.log("CCS",slu.CCS)
 
