@@ -1,8 +1,10 @@
 import SUPERLU from "./superlu.js"
+export {default as SUPERLU} from "./superlu.js"
+
 //import Package from "./package.json" assert { type: "json" }
 
 //export const version = Package.version
-export const version = ()=>"SuperLU version 6.0.1"
+export const version = "SuperLU version 6.0.1"
 
 export const superLU = async () => {
   const superlu = await SUPERLU()
@@ -25,6 +27,30 @@ export const superLU = async () => {
   }
   return func 
 }
+
+export const superLUWithWorker = async () => {
+  const path = import.meta.url.split("/").slice(0,-1).join("/")
+  const worker = new Worker(path+"/worker.js",{type:"module"})
+
+  const func = {
+    init(){
+      const slu = new SLUW(worker)
+      return slu
+    },
+    fromMatrix(matrix){
+      const slu = new SLUW(worker)
+      slu.setMatrix(matrix)
+      return slu
+    },
+    fromCCS(m,n,nnz,a,asub,xa){
+      const slu = new SLUW(worker)
+      slu.setCCS(m,n,nnz,a,asub,xa)
+      return slu
+    },
+  }
+  return func
+}
+
 
 const SLU = class{
   constructor(superlu){
@@ -166,7 +192,43 @@ const SLU = class{
   }
 }
 
-const linSolve = (superlu, m,n,nnz, a_, asub_, xa_, nrhs, rhs_) => {
+const SLUW = class extends SLU{
+  constructor(worker){
+    super()
+    this.worker = worker
+  }
+  terminate(){
+    worker.terminate()
+  }
+  async solve(B){
+    const m    = this.m
+    const n    = this.n
+    const nnz  = this.nnz
+    const a    = this.a
+    const asub = this.asub
+    const xa   = this.xa
+
+    super.setRHS(B)
+    const nrhs = this.nrhs
+    const rhs  = this.rhs
+
+    const post = (message) =>new Promise(resolve => {
+      this.worker.onmessage=(e)=>resolve(e.data)
+      this.worker.onerror=(e)=>{
+        console.log("ERROR OCCURED IN WORKER of SUPERLU")
+        console.log(e.message)
+        resolve(null)
+      }
+      this.worker.postMessage(message)
+    })
+   const message = {m,n,nnz,a,asub, xa, nrhs,rhs}
+    const x = await post(message)
+    return x
+  }
+}
+
+
+export const linSolve = (superlu, m,n,nnz, a_, asub_, xa_, nrhs, rhs_) => {
   const F64Byte =  8 
   const I32Byte =  4 
 

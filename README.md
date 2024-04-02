@@ -23,7 +23,9 @@ const main = async () => {
     [l, l, 0, 0, r],
   ]
 
-  SLU = await superLU()
+  if(!SLU){
+    SLU = await superLU()
+  }
   console.log("SLU", SLU)
 
   const slu = SLU.fromMatrix(A)
@@ -60,13 +62,77 @@ const main = async () => {
 
   const x = slu.solve(B) //  solve for x: Ax = B^T (B is trnasposed)
   console.log("x",x)
-
-
 }
+
 main()
 ```
 
+## How to use superlu on WEB Worker
 
+```
+// smple code
+import {superLUWithWorker} from "./node_modules/superlu/index.js"
+
+export let SLU = null
+const main = async () => {
+  const s = 19
+  const u = 21
+  const p = 16
+  const e =  5
+  const r = 18
+  const l = 12
+
+  const A = [
+    [s, 0, u, u, 0],
+    [l, u, 0, 0, 0],
+    [0, l, p, 0, 0],
+    [0, 0, 0, e, u],
+    [l, l, 0, 0, r],
+  ]
+
+  if(!SLU){
+    SLU = await superLUWithWorker()
+  }
+  console.log("SLU", SLU)
+
+  const slu = SLU.fromMatrix(A)
+
+  /** set system matrix from CCS(compressed colummnh strage) format
+    const colIndex = [0, 1, 4, 1, 2, 4, 0, 2, 0, 3, 3, 4]
+    const nnz = 12
+    const rowPtr = [0, 3, 6, 8, 10, 12]
+    const rows = 5
+    const val = [19, 12, 12, 21, 12, 12, 21, 16, 21, 5, 21, 18]
+
+    const amg = AMG.fromCCS(rows,rows,nnz,val,colIndex,rowPtr)
+   */
+
+
+  console.log("slu", slu)
+  console.log("CCS",slu.CCS)
+
+
+
+  const V = [1,1,1,1,1]
+
+  const B = [
+    [1,1,1,1,1],
+    [1,2,1,2,1],
+  ]
+
+
+  const U = await slu.solve(V) // solve for U:  AU = V^T (V is trnasposed) 
+
+  const  ans = [-0.031250,  0.065476,  0.013393,  0.062500,  0.032738]
+  console.log("ans", ans)
+  console.log("U", U)
+
+  const x = await slu.solve(B) //  solve for x: Ax = B^T (B is trnasposed)
+  console.log("x",x)
+}
+
+main()
+```
 
 ## How to make wasm
 
